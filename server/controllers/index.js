@@ -10,7 +10,7 @@ const addEntireMoveList = async (req, res) => {
 };
 
 const addNewCharacter = async (req, res) => {
-  const { name } = req.body;
+  const { name } = req.params;
   const newChar = await CharacterModel.insertMany({ name });
   res.json({ newChar });
 };

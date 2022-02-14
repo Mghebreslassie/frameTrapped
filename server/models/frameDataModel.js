@@ -22,7 +22,6 @@ const FrameDataSchema = new mongoose.Schema({
   },
   recovery: {
     type: String,
-    required: true,
   },
   on_block: {
     type: String,

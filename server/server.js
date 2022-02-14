@@ -8,8 +8,9 @@ const helmet = require("helmet");
 const dotenv = require("dotenv").config();
 const uri = `mongodb+srv://${process.env.DBUSER}:${process.env.DBPASS}@cluster0.uwiiy.mongodb.net/${process.env.DBNAME}?retryWrites=true&w=majority`;
 const characterRouter = require("./routes");
-var multer = require("multer");
 var imgModel = require("./models/imageModel");
+const CharacterModel = require("./models/characterModel");
+const imageUrlList = require("./logic");
 
 app.use(express.json());
 app.use(cors());
@@ -30,40 +31,50 @@ mongoose
     console.log(`the error is ${e}`);
   });
 
-var storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, "uploads");
-  },
-  filename: (req, file, cb) => {
-    cb(null, file.fieldname + "-" + Date.now());
-  },
-});
-
-var upload = multer({ storage: storage });
-app.get("/", (req, res) => {
-  imgModel.find({}, (err, items) => {
+mongoose.connection.once("connected", async () => {
+  CharacterModel.find({}, (err, items) => {
     if (err) {
       console.log(err);
       res.status(500).send("An error occurred", err);
     } else {
-      res.json({ items: items });
+      items.forEach((item) => console.log(item.name));
     }
   });
 });
-// Step 8 - the POST handler for processing the uploaded file
 
-app.post("/", upload.single("image"), (req, res, next) => {
-  var obj = {
-    name: req.body.name,
-    desc: req.body.desc,
-    img: {
-      data: fs.readFileSync(
-        path.join(__dirname + "/uploads/" + req.file.filename)
-      ),
-      contentType: "image/png",
+app.post("/", async (req, res) => {
+  const { name, bio } = req.body;
+  const rawData = fs.readFileSync(
+    `./data/scrapedData/${name.split(" ")?.join("_")}.json`,
+    {
+      encoding: "utf8",
+      flag: "r",
+    }
+  );
+  const data = await JSON.parse(rawData);
+  let avatarUrl;
+  let portraitUrl;
+  imageUrlList.forEach((char) => {
+    if (char.name === name) {
+      avatarUrl = char.avatarUrl;
+      portraitUrl = char.portraitUrl;
+    }
+  });
+  const charObj = {
+    name: data.name,
+    details: {
+      Defense: data["Defense:"],
+      Guts: data["Guts:"],
+      Prejump: data["Prejump:"],
+      Backdash: data["Backdash:"],
+      Weight: data["Weight:"],
     },
+    bio: bio,
+    moveSet: data.moveSet,
+    avatarImageUrl: avatarUrl,
+    portraitImageUrl: portraitUrl,
   };
-  imgModel.create(obj, (err, item) => {
+  CharacterModel.create(charObj, (err, item) => {
     if (err) {
       console.log(err);
     } else {
