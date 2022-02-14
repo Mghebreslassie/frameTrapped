@@ -31,58 +31,47 @@ mongoose
     console.log(`the error is ${e}`);
   });
 
-mongoose.connection.once("connected", async () => {
-  CharacterModel.find({}, (err, items) => {
-    if (err) {
-      console.log(err);
-      res.status(500).send("An error occurred", err);
-    } else {
-      items.forEach((item) => console.log(item.name));
-    }
-  });
-});
-
-app.post("/", async (req, res) => {
-  const { name, bio } = req.body;
-  const rawData = fs.readFileSync(
-    `./data/scrapedData/${name.split(" ")?.join("_")}.json`,
-    {
-      encoding: "utf8",
-      flag: "r",
-    }
-  );
-  const data = await JSON.parse(rawData);
-  let avatarUrl;
-  let portraitUrl;
-  imageUrlList.forEach((char) => {
-    if (char.name === name) {
-      avatarUrl = char.avatarUrl;
-      portraitUrl = char.portraitUrl;
-    }
-  });
-  const charObj = {
-    name: data.name,
-    details: {
-      Defense: data["Defense:"],
-      Guts: data["Guts:"],
-      Prejump: data["Prejump:"],
-      Backdash: data["Backdash:"],
-      Weight: data["Weight:"],
-    },
-    bio: bio,
-    moveSet: data.moveSet,
-    avatarImageUrl: avatarUrl,
-    portraitImageUrl: portraitUrl,
-  };
-  CharacterModel.create(charObj, (err, item) => {
-    if (err) {
-      console.log(err);
-    } else {
-      // item.save();
-      res.redirect("/");
-    }
-  });
-});
+// app.post("/", async (req, res) => {
+//   const { name, bio } = req.body;
+//   const rawData = fs.readFileSync(
+//     `./data/scrapedData/${name.split(" ")?.join("_")}.json`,
+//     {
+//       encoding: "utf8",
+//       flag: "r",
+//     }
+//   );
+//   const data = await JSON.parse(rawData);
+//   let avatarUrl;
+//   let portraitUrl;
+//   imageUrlList.forEach((char) => {
+//     if (char.name === name) {
+//       avatarUrl = char.avatarUrl;
+//       portraitUrl = char.portraitUrl;
+//     }
+//   });
+//   const charObj = {
+//     name: data.name,
+//     details: {
+//       Defense: data["Defense:"],
+//       Guts: data["Guts:"],
+//       Prejump: data["Prejump:"],
+//       Backdash: data["Backdash:"],
+//       Weight: data["Weight:"],
+//     },
+//     bio: bio,
+//     moveSet: data.moveSet,
+//     avatarImageUrl: avatarUrl,
+//     portraitImageUrl: portraitUrl,
+//   };
+//   CharacterModel.create(charObj, (err, item) => {
+//     if (err) {
+//       console.log(err);
+//     } else {
+//       // item.save();
+//       res.redirect("/");
+//     }
+//   });
+// });
 
 app.listen(process.env.PORT, () => {
   console.log(`listening on port ${process.env.PORT}`);
